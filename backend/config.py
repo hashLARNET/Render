@@ -17,36 +17,44 @@ def encode_database_url(url: str) -> str:
     return url
 
 class Settings(BaseSettings):
-    # Supabase - se cargan de las variables de Render
-    supabase_url: str = os.getenv("SUPABASE_URL", "")
-    supabase_anon_key: str = os.getenv("SUPABASE_ANON_KEY", "") 
-    supabase_service_role_key: str = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
+    # Supabase
+    supabase_url: str = ""
+    supabase_anon_key: str = ""
+    supabase_service_role_key: str = ""
     
-    # Database - Render provee DATABASE_URL automáticamente si usas su DB
-    # Pero tú usas Supabase, así que no necesitas esta línea:
-    # database_url: str = os.getenv("DATABASE_URL", "")
+    # Database - Render automáticamente provee DATABASE_URL
+    database_url: str = ""
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # Usar DATABASE_URL de Render si está disponible
+        render_db_url = os.getenv('DATABASE_URL')
+        if render_db_url:
+            self.database_url = encode_database_url(render_db_url)
+        elif self.database_url:
+            self.database_url = encode_database_url(self.database_url)
     
     # JWT
-    secret_key: str = os.getenv("SECRET_KEY", "fallback-secret-key")
+    secret_key: str = "your-secret-key-change-in-production"
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
     
     # Application
-    debug: bool = os.getenv("DEBUG", "false").lower() == "true"
+    debug: bool = False
     api_host: str = "0.0.0.0"
     api_port: int = 8000
     
-    # CORS
+    # CORS - Configuración para Render + Netlify
     @property
     def allowed_origins(self) -> List[str]:
         origins = [
             "http://localhost:3000",
             "http://127.0.0.1:3000", 
-            "http://localhost:8080", 
+            "http://localhost:8080",
             "http://127.0.0.1:8080"
         ]
         
-        # Agregar dominio de Netlify desde variables de Render
+        # Agregar dominio de Netlify desde variables de entorno
         netlify_url = os.getenv("NETLIFY_URL", "")
         if netlify_url:
             origins.extend([
@@ -54,12 +62,14 @@ class Settings(BaseSettings):
                 f"http://{netlify_url}"
             ])
         
-        # Agregar dominio de Render
+        # Agregar dominio de Render si existe
         render_url = os.getenv("RENDER_EXTERNAL_URL", "")
         if render_url:
             origins.append(render_url)
             
         return origins
 
-# No necesita Config con env_file porque usa variables de entorno del sistema
+    class Config:
+        env_file = ".env"
+
 settings = Settings()
