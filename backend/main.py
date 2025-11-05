@@ -5,10 +5,10 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 # Importaciones CORREGIDAS - sin "backend."
-from backend.api.v1.endpoints import auth, inventory, withdrawals, warehouses, history
-from backend.config import settings
-from backend.database.base import engine
-from backend.models import Base
+from api.v1.endpoints import auth, inventory, withdrawals, warehouses, history
+from config import settings
+from database.base import engine
+from models import Base
 import os
 
 # Create database tables
@@ -23,22 +23,21 @@ app = FastAPI(
     version="1.0.0",
     docs_url="/docs",
     redoc_url=None,
-    # Configuración adicional para Render
     openapi_url="/openapi.json"
+)
+
+# ✅ CORS TEMPORAL - PERMITIR TODO
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Permitir todos los orígenes
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Add rate limiter state and exception handler
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-
-# CORS middleware - Configurado para Render
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.allowed_origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 # Include routers
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["authentication"])
@@ -68,13 +67,6 @@ def api_info():
         "docs": "/docs",
         "environment": "render"
     }
-
-# Server startup event
-@app.on_event("startup")
-async def startup_event():
-    print("🚀 Application starting up...")
-    print(f"📊 Database URL: {settings.database_url[:30]}...")
-    print(f"🌐 Allowed origins: {settings.allowed_origins}")
 
 if __name__ == "__main__":
     import uvicorn
