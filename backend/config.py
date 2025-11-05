@@ -43,28 +43,28 @@ class Settings(BaseSettings):
     # CORS - Placeholder para Netlify
     netlify_url: str = "mi-app-inventario.netlify.app"
     
-    @property
-    def allowed_origins(self) -> List[str]:
-        origins = [
-            "http://localhost:3000",
-            "http://127.0.0.1:3000", 
-            "http://localhost:8080",
-            "http://127.0.0.1:8080"
-        ]
+ @property
+def allowed_origins(self) -> List[str]:
+    origins = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000", 
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
+        "https://690ba088ef32910008f4b042--scintillating-bubblegum-5a4b8b.netlify.app"
+    ]
+    
+    # Agregar dominio de Netlify desde variables
+    if self.netlify_url:
+        origins.extend([
+            f"https://{self.netlify_url}",
+            f"http://{self.netlify_url}"
+        ])
+    
+    # Agregar dominio de Render
+    if self.render_external_url:
+        origins.append(self.render_external_url)
         
-        # Usar self.netlify_url (cargado automáticamente por Pydantic)
-        if self.netlify_url:
-            origins.extend([
-                f"https://{self.netlify_url}",
-                f"http://{self.netlify_url}"
-            ])
-        
-        # Agregar dominio de Render si existe
-        render_url = getattr(self, 'render_external_url', '')
-        if render_url:
-            origins.append(render_url)
-            
-        return origins
+    return origins
     
     # Campo opcional para Render URL
     render_external_url: str = ""
