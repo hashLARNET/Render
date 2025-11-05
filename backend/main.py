@@ -5,10 +5,10 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 # Importaciones CORREGIDAS - sin "backend."
-from api.v1.endpoints import auth, inventory, withdrawals, warehouses, history
-from config import settings
-from database.base import engine
-from models import Base
+from backend.api.v1.endpoints import auth, inventory, withdrawals, warehouses, history
+from backend.config import settings
+from backend.database.base import engine
+from backend.models import Base
 import os
 
 # Create database tables
