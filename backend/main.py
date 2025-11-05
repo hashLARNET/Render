@@ -4,11 +4,11 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
-# Importaciones CORREGIDAS - sin "backend."
-from api.v1.endpoints import auth, inventory, withdrawals, warehouses, history
-from config import settings
-from database.base import engine
-from models import Base
+# ✅ TODOS LOS IMPORTS CON "backend."
+from backend.api.v1.endpoints import auth, inventory, withdrawals, warehouses, history
+from backend.config import settings
+from backend.database.base import engine
+from backend.models import Base
 import os
 
 # Create database tables
@@ -29,7 +29,7 @@ app = FastAPI(
 # ✅ CORS TEMPORAL - PERMITIR TODO
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Permitir todos los orígenes
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
