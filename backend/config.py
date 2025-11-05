@@ -1,7 +1,6 @@
 from pydantic_settings import BaseSettings
 from typing import List
 from urllib.parse import quote_plus
-import os
 
 def encode_database_url(url: str) -> str:
     """Encode special characters in database URL"""
@@ -17,21 +16,18 @@ def encode_database_url(url: str) -> str:
     return url
 
 class Settings(BaseSettings):
-    # Supabase
+    # Supabase - Para API y autenticación
     supabase_url: str = ""
     supabase_anon_key: str = ""
     supabase_service_role_key: str = ""
     
-    # Database - Render automáticamente provee DATABASE_URL
+    # Database URL - Para SQLAlchemy (conexión directa a PostgreSQL de Supabase)
     database_url: str = ""
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        # Usar DATABASE_URL de Render si está disponible
-        render_db_url = os.getenv('DATABASE_URL')
-        if render_db_url:
-            self.database_url = encode_database_url(render_db_url)
-        elif self.database_url:
+        # Codificar database_url si existe (para caracteres especiales como #)
+        if self.database_url:
             self.database_url = encode_database_url(self.database_url)
     
     # JWT
@@ -44,7 +40,9 @@ class Settings(BaseSettings):
     api_host: str = "0.0.0.0"
     api_port: int = 8000
     
-    # CORS - Configuración para Render + Netlify
+    # CORS - Placeholder para Netlify
+    netlify_url: str = "mi-app-inventario.netlify.app"
+    
     @property
     def allowed_origins(self) -> List[str]:
         origins = [
@@ -54,22 +52,21 @@ class Settings(BaseSettings):
             "http://127.0.0.1:8080"
         ]
         
-        # Agregar dominio de Netlify desde variables de entorno
-        netlify_url = os.getenv("NETLIFY_URL", "")
-        if netlify_url:
+        # Usar self.netlify_url (cargado automáticamente por Pydantic)
+        if self.netlify_url:
             origins.extend([
-                f"https://{netlify_url}",
-                f"http://{netlify_url}"
+                f"https://{self.netlify_url}",
+                f"http://{self.netlify_url}"
             ])
         
         # Agregar dominio de Render si existe
-        render_url = os.getenv("RENDER_EXTERNAL_URL", "")
+        render_url = getattr(self, 'render_external_url', '')
         if render_url:
             origins.append(render_url)
             
         return origins
-
-    class Config:
-        env_file = ".env"
+    
+    # Campo opcional para Render URL
+    render_external_url: str = ""
 
 settings = Settings()
